@@ -1,27 +1,32 @@
 """
-FAISS-based vector store with ONNX MiniLM embeddings.
+FAISS-based vector store — embeddings via HuggingFace Inference API.
 
-Replaces ChromaDB — loads a persisted FAISS index on startup and
-exposes a `search()` helper for retrieving relevant curriculum chunks.
+Uses the HF Inference API to embed text with all-MiniLM-L6-v2.
+No local compiled dependencies (no onnxruntime, no torch).
+Requires HF_API_TOKEN in .env.
 """
 
 from __future__ import annotations
 
 import json
 import os
+import time
 from dataclasses import dataclass, field
-from pathlib import Path
 
-import faiss
+import httpx
 import numpy as np
-from chromadb.utils.embedding_functions.onnx_mini_lm_l6_v2 import ONNXMiniLM_L6_V2
+import faiss
 
-from app.config import FAISS_DIR
+from app.config import FAISS_DIR, HF_API_TOKEN
 
 # ── Constants ────────────────────────────────────────────────────────
 INDEX_FILE = "index.faiss"
 META_FILE = "metadata.json"
 EMBEDDING_DIM = 384  # all-MiniLM-L6-v2 output dimension
+HF_EMBED_URL = (
+    "https://router.huggingface.co/hf-inference/models/"
+    "sentence-transformers/all-MiniLM-L6-v2/pipeline/feature-extraction"
+)
 
 
 # ── Document dataclass (lightweight replacement for LangChain Document) ──
@@ -32,25 +37,39 @@ class Document:
 
 
 # ── Module-level singletons ─────────────────────────────────────────
-_embed_fn: ONNXMiniLM_L6_V2 | None = None
 _index: faiss.IndexFlatIP | None = None
 _metadata: list[dict] = []
 
 
-def get_embed_fn() -> ONNXMiniLM_L6_V2:
-    """Return (and cache) the ONNX embedding function."""
-    global _embed_fn
-    if _embed_fn is None:
-        _embed_fn = ONNXMiniLM_L6_V2(preferred_providers=["CPUExecutionProvider"])
-    return _embed_fn
-
-
 def embed_texts(texts: list[str]) -> np.ndarray:
-    """Embed a list of texts and return an (N, 384) float32 array, L2-normalised."""
-    ef = get_embed_fn()
-    vectors = np.array(ef(texts), dtype=np.float32)
-    faiss.normalize_L2(vectors)
-    return vectors
+    """Embed texts via HF Inference API.
+
+    Returns an (N, 384) float32 array, L2-normalised for FAISS cosine search.
+    Retries up to 5 times on network errors or model cold-start (HTTP 503).
+    """
+    headers = {"Authorization": f"Bearer {HF_API_TOKEN}"}
+    last_exc: Exception | None = None
+    for attempt in range(5):
+        try:
+            response = httpx.post(
+                HF_EMBED_URL,
+                headers=headers,
+                json={"inputs": texts},
+                timeout=60.0,
+            )
+            if response.status_code == 503:
+                time.sleep(20)
+                continue
+            response.raise_for_status()
+            vectors = np.array(response.json(), dtype=np.float32)
+            faiss.normalize_L2(vectors)
+            return vectors
+        except (httpx.ConnectError, httpx.ReadTimeout, httpx.RemoteProtocolError) as exc:
+            last_exc = exc
+            wait = 10 * (attempt + 1)
+            print(f"  [embed] network error ({exc}), retrying in {wait}s...")
+            time.sleep(wait)
+    raise RuntimeError(f"embed_texts failed after 5 attempts: {last_exc}") from last_exc
 
 
 # ── Persistence ──────────────────────────────────────────────────────

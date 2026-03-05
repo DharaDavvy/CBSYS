@@ -6,7 +6,6 @@ uvicorn[standard]
 langchain
 langchain-community
 faiss-cpu
-onnxruntime==1.20.0
 pypdf
 
 # ── LLM Providers ───────────────────────────────────────────────────
@@ -22,4 +21,3 @@ python-dotenv
 httpx
 pydantic
 numpy
-   

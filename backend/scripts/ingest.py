@@ -10,6 +10,7 @@ Prerequisites:
     - pip install -r requirements.txt
 """
 
+import os
 import sys
 from pathlib import Path
 
@@ -19,7 +20,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from pypdf import PdfReader
 
 from app.config import FAISS_DIR, DATA_DIR, CHUNK_SIZE, CHUNK_OVERLAP
-from app.services.embeddings import embed_texts, save_index, EMBEDDING_DIM
+from app.services.embeddings import embed_texts, save_index, load_index, EMBEDDING_DIM
 from app.services.text_splitter import split_text
 
 import faiss
@@ -60,16 +61,33 @@ def main():
     print(f"  Split into {len(chunks)} chunk(s)  (size={CHUNK_SIZE}, overlap={CHUNK_OVERLAP}).")
 
     # ── 3. Embed in batches and build FAISS index ────────────────────
-    print("Embedding chunks with ONNX MiniLM-L6-v2 ...")
-    BATCH_SIZE = 64
+    print("Embedding chunks with HuggingFace API ...")
+    BATCH_SIZE = 16
     index = faiss.IndexFlatIP(EMBEDDING_DIM)
 
-    for start in range(0, len(chunks), BATCH_SIZE):
-        batch = chunks[start : start + BATCH_SIZE]
+    # Checkpoint: if a partial index already exists, load it and skip done chunks
+    checkpoint_meta: list[dict] = []
+    start_chunk = 0
+    checkpoint_index_path = os.path.join(FAISS_DIR, "index.faiss")
+    checkpoint_meta_path = os.path.join(FAISS_DIR, "metadata.json")
+    if os.path.exists(checkpoint_index_path) and os.path.exists(checkpoint_meta_path):
+        index, checkpoint_meta = load_index(FAISS_DIR)
+        start_chunk = len(checkpoint_meta)
+        print(f"  Resuming from chunk {start_chunk}/{len(chunks)} (checkpoint found)")
+        chunks_remaining = chunks[start_chunk:]
+    else:
+        chunks_remaining = chunks
+
+    for batch_start in range(0, len(chunks_remaining), BATCH_SIZE):
+        batch = chunks_remaining[batch_start : batch_start + BATCH_SIZE]
         texts = [c["text"] for c in batch]
         vectors = embed_texts(texts)  # already L2-normalised
         index.add(vectors)
-        print(f"  Embedded {min(start + BATCH_SIZE, len(chunks))}/{len(chunks)} chunks", flush=True)
+        checkpoint_meta.extend(batch)
+        done = start_chunk + batch_start + len(batch)
+        print(f"  Embedded {done}/{len(chunks)} chunks", flush=True)
+        # Save checkpoint after every batch so we can resume on failure
+        save_index(index, checkpoint_meta, FAISS_DIR)
 
     # ── 4. Persist to disk ───────────────────────────────────────────
     print(f"Saving FAISS index to: {FAISS_DIR}")

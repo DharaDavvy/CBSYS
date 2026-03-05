@@ -42,3 +42,7 @@ CORS_ORIGINS = [
     "http://localhost:5173",   # Vite dev server
     "http://127.0.0.1:5173",
 ]
+# Allow additional origins via env var (space-separated)
+_extra = os.getenv("CORS_EXTRA_ORIGINS", "")
+if _extra:
+    CORS_ORIGINS += [o.strip() for o in _extra.split() if o.strip()]

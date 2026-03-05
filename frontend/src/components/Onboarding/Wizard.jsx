@@ -50,6 +50,7 @@ export default function Wizard() {
     try {
       await saveUser({ name, matricNumber, department, level });
       await saveProfile({ interests, skills: [], targetCareer });
+      sessionStorage.removeItem("needsOnboarding");
       navigate("/dashboard");
     } catch (err) {
       setError(err.response?.data?.detail || "Failed to save profile.");

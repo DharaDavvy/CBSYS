@@ -17,6 +17,7 @@ export default function Login() {
 
     try {
       if (isRegister) {
+        sessionStorage.setItem("needsOnboarding", "1");
         await registerWithMatric(matric, password);
         navigate("/onboarding");
       } else {

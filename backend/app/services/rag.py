@@ -69,14 +69,28 @@ async def generate_roadmap(
     level: int,
     interests: list[str],
     completed_courses: list[str],
+    target_career: str = "",
+    skills: list[str] | None = None,
+    department: str = "Computer Science",
     k: int = 8,
 ) -> dict:
     """Generate a structured academic roadmap using RAG.
 
     Returns {"roadmap": list[dict], "sources": list[str]}
     """
-    # Build a composite query to pull the most relevant programme-structure chunks
-    query_parts = [f"programme structure level {level}"]
+    if skills is None:
+        skills = []
+
+    # Build a composite query anchored to the student's remaining years,
+    # their target career, and their interests so we retrieve the most
+    # relevant curriculum chunks.
+    year = level // 100  # e.g. 300 → 3
+    level_terms = " ".join(
+        f"year {y} level {y * 100}" for y in range(year, 6)
+    )
+    query_parts = [f"{department} programme structure {level_terms}"]
+    if target_career:
+        query_parts.append(f"courses for career in {target_career}")
     if interests:
         query_parts.append("courses related to " + ", ".join(interests))
     query = ". ".join(query_parts)
@@ -86,7 +100,10 @@ async def generate_roadmap(
 
     prompt = ROADMAP_SYSTEM_PROMPT.format(
         level=level,
+        department=department,
+        target_career=target_career or "not specified",
         interests=", ".join(interests) if interests else "none specified",
+        skills=", ".join(skills) if skills else "none listed",
         completed_courses=", ".join(completed_courses) if completed_courses else "none",
         context=context_text,
     )

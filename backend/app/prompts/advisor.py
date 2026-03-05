@@ -16,6 +16,9 @@ RULES — follow these strictly:
    [Source: NUC CCMAS Computing, <section or page>]
 4. Be concise, clear, and encouraging.
 5. When listing courses, include the course code and unit value.
+6. Course level accuracy (never violate): a course's year is determined by its code —
+   100-level codes are Year 1, 200-level are Year 2, 300-level are Year 3, and so on.
+   Never describe or recommend a course as belonging to a year that contradicts its code.
 
 CONTEXT:
 {context}

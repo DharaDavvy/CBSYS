@@ -40,7 +40,7 @@ export default function Profile() {
       <h2 className="text-xl font-bold text-gray-900 mb-6">Profile</h2>
 
       {/* User info */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+      <div className="bg-white rounded-none border border-gray-200 p-6 mb-6">
         <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">
           Student Information
         </h3>
@@ -60,7 +60,7 @@ export default function Profile() {
       </div>
 
       {/* Profile / interests */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <div className="bg-white rounded-none border border-gray-200 p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
             Interests & Goals
@@ -68,7 +68,7 @@ export default function Profile() {
           {!editing && (
             <button
               onClick={() => setEditing(true)}
-              className="text-sm text-blue-600 hover:underline cursor-pointer"
+              className="text-sm text-[#8cc63f] hover:underline cursor-pointer"
             >
               Edit
             </button>
@@ -87,7 +87,7 @@ export default function Profile() {
                 onChange={(e) =>
                   setInterests(e.target.value.split(",").map((s) => s.trim()).filter(Boolean))
                 }
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-none focus:ring-2 focus:ring-[#8cc63f] focus:border-[#8cc63f] outline-none"
               />
             </div>
             <div>
@@ -98,20 +98,20 @@ export default function Profile() {
                 type="text"
                 value={targetCareer}
                 onChange={(e) => setTargetCareer(e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-none focus:ring-2 focus:ring-[#8cc63f] focus:border-[#8cc63f] outline-none"
               />
             </div>
             <div className="flex gap-3">
               <button
                 onClick={() => setEditing(false)}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition cursor-pointer"
+                className="px-4 py-2 border border-gray-300 rounded-none text-sm text-gray-700 hover:bg-gray-50 transition cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50 transition cursor-pointer"
+                className="px-4 py-2 bg-[#8cc63f] text-white rounded-none text-sm hover:bg-[#7db437] disabled:opacity-50 transition cursor-pointer"
               >
                 {saving ? "Saving..." : "Save"}
               </button>
@@ -124,7 +124,7 @@ export default function Profile() {
                 profile.interests.map((interest, i) => (
                   <span
                     key={i}
-                    className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm"
+                    className="px-3 py-1 bg-[#f4fce8] text-[#8cc63f] rounded-none text-sm"
                   >
                     {interest}
                   </span>

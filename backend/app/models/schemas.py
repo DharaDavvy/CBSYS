@@ -22,7 +22,7 @@ class ChatResponse(BaseModel):
 
 class RoadmapRequest(BaseModel):
     user_id: str
-    level: int                         # 100–500
+    level: int | None = None           # 100–500; fetched from Firestore if omitted
     interests: list[str] = []
     completed_courses: list[str] = []  # course codes
 

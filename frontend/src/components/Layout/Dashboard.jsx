@@ -14,8 +14,8 @@ export default function Dashboard() {
         <header className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
           <div />
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-              <span className="text-blue-700 font-medium text-sm">
+            <div className="w-8 h-8 bg-[#eef9e1] rounded-none flex items-center justify-center">
+              <span className="text-[#8cc63f] font-medium text-sm">
                 {currentUser?.email?.charAt(0).toUpperCase() || "U"}
               </span>
             </div>

@@ -44,7 +44,7 @@ export default function Sidebar() {
       {/* Brand */}
       <div className="px-6 py-5 border-b border-gray-200">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center">
+          <div className="w-9 h-9 bg-[#8cc63f] rounded-none flex items-center justify-center">
             <span className="text-white font-bold text-sm">CB</span>
           </div>
           <div>
@@ -62,9 +62,9 @@ export default function Sidebar() {
             to={item.to}
             end={item.to === "/dashboard"}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${
+              `flex items-center gap-3 px-3 py-2.5 rounded-none text-sm font-medium transition ${
                 isActive
-                  ? "bg-blue-50 text-blue-700"
+                  ? "bg-[#f4fce8] text-[#8cc63f]"
                   : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
               }`
             }
@@ -79,7 +79,7 @@ export default function Sidebar() {
       <div className="px-3 py-4 border-t border-gray-200">
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-red-50 hover:text-red-600 transition cursor-pointer"
+          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-none text-sm font-medium text-gray-600 hover:bg-red-50 hover:text-red-600 transition cursor-pointer"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />

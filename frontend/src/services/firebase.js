@@ -3,6 +3,7 @@ import {
   getAuth,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
   signOut,
 } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
@@ -44,6 +45,16 @@ export async function loginWithMatric(matric, password) {
 export async function registerWithMatric(matric, password) {
   const email = matricToEmail(matric);
   return createUserWithEmailAndPassword(auth, email, password);
+}
+
+/**
+ * Send a password reset email using the matric number.
+ * Note: Since this uses a synthetic email, actual emails won't be delivered 
+ * unless a custom email handler is set up mapping to real student emails.
+ */
+export async function resetPasswordWithMatric(matric) {
+  const email = matricToEmail(matric);
+  return sendPasswordResetEmail(auth, email);
 }
 
 /**

@@ -52,15 +52,15 @@ export default function VisualRoadmap() {
           position: { x: semIdx * 320, y: 0 },
           data: {
             label: (
-              <div className="font-bold text-blue-700 text-sm">
+              <div className="font-bold text-[#8cc63f] text-sm">
                 {sem.semester}
               </div>
             ),
           },
           style: {
-            background: "#EFF6FF",
-            border: "2px solid #3B82F6",
-            borderRadius: 12,
+            background: "#f4fce8",
+            border: "2px solid #8cc63f",
+            borderRadius: 0,
             padding: 10,
             minWidth: 250,
           },
@@ -81,7 +81,7 @@ export default function VisualRoadmap() {
             style: {
               background: "#FFFFFF",
               border: "1px solid #D1D5DB",
-              borderRadius: 8,
+              borderRadius: 0,
               padding: 8,
               minWidth: 250,
             },
@@ -92,7 +92,7 @@ export default function VisualRoadmap() {
             id: `edge-${semId}-${courseId}`,
             source: semId,
             target: courseId,
-            style: { stroke: "#93C5FD" },
+            style: { stroke: "#c6e69f" },
           });
         });
 
@@ -102,7 +102,7 @@ export default function VisualRoadmap() {
             id: `edge-sem-${semIdx - 1}-sem-${semIdx}`,
             source: `sem-${semIdx - 1}`,
             target: semId,
-            style: { stroke: "#3B82F6", strokeWidth: 2 },
+            style: { stroke: "#8cc63f", strokeWidth: 2 },
             animated: true,
           });
         }
@@ -131,7 +131,7 @@ export default function VisualRoadmap() {
         <button
           onClick={generate}
           disabled={loading}
-          className="px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition cursor-pointer"
+          className="px-5 py-2 bg-[#8cc63f] text-white text-sm font-medium rounded-none hover:bg-[#7db437] disabled:opacity-50 transition cursor-pointer"
         >
           {loading ? "Generating..." : generated ? "Regenerate" : "Generate Roadmap"}
         </button>
@@ -141,7 +141,7 @@ export default function VisualRoadmap() {
       <div className="flex-1 relative">
         {!generated && !loading && (
           <div className="flex flex-col items-center justify-center h-full text-gray-400 text-center">
-            <svg className="w-16 h-16 mb-4 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-16 h-16 mb-4 text-[#c6e69f]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2m0 10V7m6 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2v10z" />
             </svg>
             <p className="font-medium text-gray-600">No roadmap yet</p>
@@ -150,7 +150,7 @@ export default function VisualRoadmap() {
         )}
 
         {error && (
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 text-sm text-red-600 bg-red-50 px-4 py-2 rounded-lg shadow z-10">
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 text-sm text-red-600 bg-red-50 px-4 py-2 rounded-none shadow z-10">
             {error}
           </div>
         )}
@@ -175,7 +175,7 @@ export default function VisualRoadmap() {
         <div className="border-t border-gray-200 px-6 py-3 flex flex-wrap gap-2">
           <span className="text-xs text-gray-500 mr-1">Sources:</span>
           {sources.map((src, i) => (
-            <span key={i} className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">
+            <span key={i} className="text-xs bg-[#f4fce8] text-[#8cc63f] px-2 py-0.5 rounded-none">
               {src}
             </span>
           ))}

@@ -61,14 +61,14 @@ export default function Wizard() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
-      <div className="w-full max-w-lg bg-white rounded-2xl shadow-lg p-8">
+      <div className="w-full max-w-lg bg-white rounded-none shadow-lg p-8">
         {/* Progress indicator */}
         <div className="flex items-center justify-center gap-2 mb-8">
           {[1, 2].map((s) => (
             <div
               key={s}
-              className={`h-2 w-16 rounded-full transition ${
-                s <= step ? "bg-blue-600" : "bg-gray-200"
+              className={`h-2 w-16 rounded-none transition ${
+                s <= step ? "bg-[#8cc63f]" : "bg-gray-200"
               }`}
             />
           ))}
@@ -92,7 +92,7 @@ export default function Wizard() {
                   onChange={(e) => setName(e.target.value)}
                   placeholder="John Doe"
                   required
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-none focus:ring-2 focus:ring-[#8cc63f] focus:border-[#8cc63f] outline-none"
                 />
               </div>
 
@@ -106,7 +106,7 @@ export default function Wizard() {
                   onChange={(e) => setMatricNumber(e.target.value)}
                   placeholder="CSC/2024/001"
                   required
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-none focus:ring-2 focus:ring-[#8cc63f] focus:border-[#8cc63f] outline-none"
                 />
               </div>
 
@@ -117,7 +117,7 @@ export default function Wizard() {
                 <select
                   value={department}
                   onChange={(e) => setDepartment(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-none focus:ring-2 focus:ring-[#8cc63f] focus:border-[#8cc63f] outline-none"
                 >
                   {DEPARTMENTS.map((d) => (
                     <option key={d} value={d}>{d}</option>
@@ -132,7 +132,7 @@ export default function Wizard() {
                 <select
                   value={level}
                   onChange={(e) => setLevel(Number(e.target.value))}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-none focus:ring-2 focus:ring-[#8cc63f] focus:border-[#8cc63f] outline-none"
                 >
                   {[100, 200, 300, 400, 500].map((l) => (
                     <option key={l} value={l}>Level {l}</option>
@@ -144,7 +144,7 @@ export default function Wizard() {
             <button
               onClick={() => setStep(2)}
               disabled={!name || !matricNumber}
-              className="w-full mt-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition cursor-pointer"
+              className="w-full mt-6 py-2.5 bg-[#8cc63f] text-white font-medium rounded-none hover:bg-[#7db437] disabled:opacity-50 transition cursor-pointer"
             >
               Next
             </button>
@@ -163,9 +163,9 @@ export default function Wizard() {
                 <button
                   key={item}
                   onClick={() => toggleInterest(item)}
-                  className={`px-3 py-1.5 rounded-full text-sm font-medium border transition cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-none text-sm font-medium border transition cursor-pointer ${
                     interests.includes(item)
-                      ? "bg-blue-600 text-white border-blue-600"
+                      ? "bg-[#8cc63f] text-white border-[#8cc63f]"
                       : "bg-white text-gray-700 border-gray-300 hover:border-blue-400"
                   }`}
                 >
@@ -183,12 +183,12 @@ export default function Wizard() {
                 value={targetCareer}
                 onChange={(e) => setTargetCareer(e.target.value)}
                 placeholder="e.g. Data Scientist, Full-Stack Developer"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-none focus:ring-2 focus:ring-[#8cc63f] focus:border-[#8cc63f] outline-none"
               />
             </div>
 
             {error && (
-              <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg mb-4">
+              <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-none mb-4">
                 {error}
               </p>
             )}
@@ -196,14 +196,14 @@ export default function Wizard() {
             <div className="flex gap-3">
               <button
                 onClick={() => setStep(1)}
-                className="flex-1 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition cursor-pointer"
+                className="flex-1 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-none hover:bg-gray-50 transition cursor-pointer"
               >
                 Back
               </button>
               <button
                 onClick={handleFinish}
                 disabled={loading}
-                className="flex-1 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition cursor-pointer"
+                className="flex-1 py-2.5 bg-[#8cc63f] text-white font-medium rounded-none hover:bg-[#7db437] disabled:opacity-50 transition cursor-pointer"
               >
                 {loading ? "Saving..." : "Finish Setup"}
               </button>

@@ -1,0 +1,30 @@
+# ── Python ────────────────────────────────────────────────────────────
+backend/env/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# ── ChromaDB persisted data (large, rebuild with ingest.py) ──────────
+backend/chroma_store/
+
+# ── Environment & secrets ────────────────────────────────────────────
+.env
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+
+# ── Node ─────────────────────────────────────────────────────────────
+node_modules/
+frontend/dist/
+
+# ── IDE ──────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ── OS ───────────────────────────────────────────────────────────────
+Thumbs.db
+.DS_Store

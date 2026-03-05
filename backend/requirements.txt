@@ -1,0 +1,25 @@
+# ── Core Framework ────────────────────────────────────────────────────
+fastapi
+uvicorn[standard]
+
+# ── AI / RAG ─────────────────────────────────────────────────────────
+langchain
+langchain-community
+faiss-cpu
+onnxruntime==1.20.0
+pypdf
+
+# ── LLM Providers ───────────────────────────────────────────────────
+langchain-huggingface
+langchain-google-genai
+langchain-groq
+
+# ── Firebase ─────────────────────────────────────────────────────────
+firebase-admin
+
+# ── Utilities ────────────────────────────────────────────────────────
+python-dotenv
+httpx
+pydantic
+numpy
+   

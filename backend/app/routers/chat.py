@@ -7,6 +7,7 @@ the advisor response with source citations.
 
 from fastapi import APIRouter, Depends
 from app.models.schemas import ChatRequest, ChatResponse
+from app.models.firebase import append_chat_message
 from app.services import rag
 from app.routers.auth import verify_token
 
@@ -17,13 +18,20 @@ router = APIRouter(prefix="/chat", tags=["Chat"])
 async def chat(body: ChatRequest, uid: str = Depends(verify_token)):
     """Ask the Faculty Advisor a curriculum question.
 
-    The *uid* from the verified token is used for chat-history
-    storage (Phase 3).  For now, the body.user_id field is also
-    accepted for convenience during development.
+    Persists the user message and advisor response to Firestore.
     """
+    # Save user message
+    append_chat_message(uid, role="user", content=body.message)
+
     result = await rag.ask(body.message)
 
-    # TODO (Phase 3): persist exchange to Firestore chatHistories/{uid}
+    # Save advisor response
+    append_chat_message(
+        uid,
+        role="assistant",
+        content=result["response"],
+        sources=result["sources"],
+    )
 
     return ChatResponse(
         response=result["response"],

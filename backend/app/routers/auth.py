@@ -9,21 +9,9 @@ Usage as a FastAPI dependency:
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-
-# Firebase Admin imports (active once Phase 3 initialises the SDK)
-# For now we provide a placeholder that extracts the user_id from the
-# request body so Phase 2 endpoints work without Firebase set up.
+from app.models.firebase import is_ready as firebase_is_ready, verify_id_token
 
 _bearer_scheme = HTTPBearer(auto_error=False)
-
-# Set to True once Firebase Admin SDK is initialised in firebase.py
-_firebase_ready = False
-
-
-def mark_firebase_ready():
-    """Called from the lifespan handler after Firebase init succeeds."""
-    global _firebase_ready
-    _firebase_ready = True
 
 
 async def verify_token(
@@ -31,9 +19,8 @@ async def verify_token(
 ) -> str:
     """Validate the Firebase ID token and return the user's UID.
 
-    While Firebase is not yet configured (Phase 2 dev mode), this
-    accepts any non-empty Bearer token and treats it as UID directly
-    so that the endpoints can be tested easily.
+    When Firebase is not configured, accepts any non-empty Bearer token
+    and treats it as UID directly (dev-mode passthrough).
     """
     if credentials is None or not credentials.credentials:
         raise HTTPException(
@@ -43,12 +30,9 @@ async def verify_token(
 
     token = credentials.credentials
 
-    if _firebase_ready:
-        # Real verification with Firebase Admin SDK
+    if firebase_is_ready():
         try:
-            from firebase_admin import auth as fb_auth  # type: ignore
-
-            decoded = fb_auth.verify_id_token(token)
+            decoded = verify_id_token(token)
             return decoded["uid"]
         except Exception as exc:
             raise HTTPException(

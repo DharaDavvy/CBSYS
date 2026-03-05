@@ -11,7 +11,7 @@ from app.config import CORS_ORIGINS
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Startup: load FAISS index + LLM; Shutdown: cleanup."""
+    """Startup: load FAISS index + LLM + Firebase; Shutdown: cleanup."""
     # Load the FAISS vector store (ONNX embedding model + persisted index)
     from app.services.embeddings import init_vectorstore
 
@@ -21,6 +21,11 @@ async def lifespan(app: FastAPI):
     from app.services.llm import init_llm
 
     await init_llm()
+
+    # Initialise Firebase Admin SDK + Firestore
+    from app.models.firebase import init_firebase
+
+    init_firebase()
 
     yield
     # Cleanup runs on shutdown (nothing to do yet)
@@ -47,7 +52,8 @@ async def health_check():
 
 
 # ── Routers ──────────────────────────────────────────────────────────
-from app.routers import chat, roadmap  # noqa: E402
+from app.routers import chat, roadmap, users  # noqa: E402
 
 app.include_router(chat.router)
 app.include_router(roadmap.router)
+app.include_router(users.router)

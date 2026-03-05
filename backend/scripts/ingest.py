@@ -26,23 +26,27 @@ import faiss
 
 
 def main():
-    pdf_path = Path(DATA_DIR) / "Computing-CCMAS 2023-FINAL.pdf"
+    data_dir = Path(DATA_DIR)
+    pdf_files = sorted(data_dir.glob("*.pdf"))
 
-    if not pdf_path.exists():
-        print(f"ERROR: PDF not found at {pdf_path}")
-        print("Please place 'Computing-CCMAS 2023-FINAL.pdf' in the backend/data/ folder.")
+    if not pdf_files:
+        print(f"ERROR: No PDF files found in {data_dir}")
         sys.exit(1)
 
-    # ── 1. Load PDF ──────────────────────────────────────────────────
-    print(f"Loading PDF: {pdf_path}")
-    reader = PdfReader(str(pdf_path))
-    pages_text = []
-    for i, page in enumerate(reader.pages):
-        text = page.extract_text() or ""
-        if text.strip():
-            pages_text.append({"text": text, "page": i})
-    print(f"  Loaded {len(pages_text)} non-empty page(s) from {len(reader.pages)} total.")
+    print(f"Found {len(pdf_files)} PDF(s): {[p.name for p in pdf_files]}")
 
+    # ── 1. Load all PDFs ─────────────────────────────────────────────
+    pages_text = []
+    for pdf_path in pdf_files:
+        print(f"Loading PDF: {pdf_path.name}")
+        reader = PdfReader(str(pdf_path))
+        for i, page in enumerate(reader.pages):
+            text = page.extract_text() or ""
+            if text.strip():
+                pages_text.append({"text": text, "page": i, "source": pdf_path.name})
+        print(f"  Loaded {len(reader.pages)} page(s).")
+
+    # ── 2. Split into chunks ─────────────────────────────────────────
     # ── 2. Split into chunks ─────────────────────────────────────────
     chunks: list[dict] = []
     for page_info in pages_text:
@@ -51,7 +55,7 @@ def main():
             chunks.append({
                 "text": s,
                 "page": page_info["page"],
-                "source": str(pdf_path.name),
+                "source": page_info["source"],
             })
     print(f"  Split into {len(chunks)} chunk(s)  (size={CHUNK_SIZE}, overlap={CHUNK_OVERLAP}).")
 

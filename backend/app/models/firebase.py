@@ -6,6 +6,7 @@ import os
 import firebase_admin
 from firebase_admin import credentials, firestore, auth
 from google.cloud.firestore_v1.base_document import DocumentSnapshot
+from google.api_core.exceptions import PermissionDenied, GoogleAPICallError
 
 from app.config import FIREBASE_CREDENTIALS
 
@@ -71,15 +72,22 @@ def save_user(uid: str, data: dict) -> None:
     """Create or update the users/{uid} document."""
     if not _db:
         return
-    _db.collection("users").document(uid).set(data, merge=True)
+    try:
+        _db.collection("users").document(uid).set(data, merge=True)
+    except (PermissionDenied, GoogleAPICallError) as e:
+        print(f"[Firestore] save_user failed: {e}")
 
 
 def get_user(uid: str) -> dict | None:
     """Return the users/{uid} document or None."""
     if not _db:
         return None
-    doc: DocumentSnapshot = _db.collection("users").document(uid).get()
-    return doc.to_dict() if doc.exists else None
+    try:
+        doc: DocumentSnapshot = _db.collection("users").document(uid).get()
+        return doc.to_dict() if doc.exists else None
+    except (PermissionDenied, GoogleAPICallError) as e:
+        print(f"[Firestore] get_user failed: {e}")
+        return None
 
 
 # ── Firestore: Profiles ─────────────────────────────────────────────
@@ -88,15 +96,22 @@ def save_profile(uid: str, data: dict) -> None:
     """Create or update the profiles/{uid} document."""
     if not _db:
         return
-    _db.collection("profiles").document(uid).set(data, merge=True)
+    try:
+        _db.collection("profiles").document(uid).set(data, merge=True)
+    except (PermissionDenied, GoogleAPICallError) as e:
+        print(f"[Firestore] save_profile failed: {e}")
 
 
 def get_profile(uid: str) -> dict | None:
     """Return the profiles/{uid} document or None."""
     if not _db:
         return None
-    doc: DocumentSnapshot = _db.collection("profiles").document(uid).get()
-    return doc.to_dict() if doc.exists else None
+    try:
+        doc: DocumentSnapshot = _db.collection("profiles").document(uid).get()
+        return doc.to_dict() if doc.exists else None
+    except (PermissionDenied, GoogleAPICallError) as e:
+        print(f"[Firestore] get_profile failed: {e}")
+        return None
 
 
 # ── Firestore: Transcripts ──────────────────────────────────────────
@@ -105,17 +120,22 @@ def save_transcript(uid: str, courses: list[dict]) -> None:
     """Overwrite the transcripts/{uid} document with a courses array."""
     if not _db:
         return
-    _db.collection("transcripts").document(uid).set({"courses": courses})
+    try:
+        _db.collection("transcripts").document(uid).set({"courses": courses})
+    except (PermissionDenied, GoogleAPICallError) as e:
+        print(f"[Firestore] save_transcript failed: {e}")
 
 
 def get_transcript(uid: str) -> list[dict]:
     """Return the courses array from transcripts/{uid}, or []."""
     if not _db:
         return []
-    doc: DocumentSnapshot = _db.collection("transcripts").document(uid).get()
-    if doc.exists:
-        return doc.to_dict().get("courses", [])
-    return []
+    try:
+        doc: DocumentSnapshot = _db.collection("transcripts").document(uid).get()
+        return doc.to_dict().get("courses", []) if doc.exists else []
+    except (PermissionDenied, GoogleAPICallError) as e:
+        print(f"[Firestore] get_transcript failed: {e}")
+        return []
 
 
 # ── Firestore: Chat Histories ───────────────────────────────────────
@@ -136,22 +156,30 @@ def append_chat_message(uid: str, role: str, content: str, sources: list[str] | 
         "sources": sources or [],
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
-    ref = _db.collection("chatHistories").document(uid)
-    ref.set({"messages": ArrayUnion([message])}, merge=True)
+    try:
+        ref = _db.collection("chatHistories").document(uid)
+        ref.set({"messages": ArrayUnion([message])}, merge=True)
+    except (PermissionDenied, GoogleAPICallError) as e:
+        print(f"[Firestore] append_chat_message failed: {e}")
 
 
 def get_chat_history(uid: str) -> list[dict]:
     """Return the full message list from chatHistories/{uid}."""
     if not _db:
         return []
-    doc: DocumentSnapshot = _db.collection("chatHistories").document(uid).get()
-    if doc.exists:
-        return doc.to_dict().get("messages", [])
-    return []
+    try:
+        doc: DocumentSnapshot = _db.collection("chatHistories").document(uid).get()
+        return doc.to_dict().get("messages", []) if doc.exists else []
+    except (PermissionDenied, GoogleAPICallError) as e:
+        print(f"[Firestore] get_chat_history failed: {e}")
+        return []
 
 
 def clear_chat_history(uid: str) -> None:
     """Delete all messages in chatHistories/{uid}."""
     if not _db:
         return
-    _db.collection("chatHistories").document(uid).delete()
+    try:
+        _db.collection("chatHistories").document(uid).delete()
+    except (PermissionDenied, GoogleAPICallError) as e:
+        print(f"[Firestore] clear_chat_history failed: {e}")

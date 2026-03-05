@@ -24,7 +24,8 @@ def _format_context(docs) -> tuple[str, list[str]]:
 
     for i, doc in enumerate(docs, 1):
         page = doc.metadata.get("page", "?")
-        source_label = f"NUC CCMAS Computing, Page {page}"
+        source_file = doc.metadata.get("source", "NUC CCMAS Computing")
+        source_label = f"{source_file}, Page {page}"
         context_parts.append(f"[{i}] (Page {page})\n{doc.page_content}")
         if source_label not in sources:
             sources.append(source_label)

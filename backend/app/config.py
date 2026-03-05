@@ -30,7 +30,12 @@ CHUNK_SIZE = 500
 CHUNK_OVERLAP = 50
 
 # ── Firebase ─────────────────────────────────────────────────────────
-FIREBASE_CREDENTIALS = os.getenv("FIREBASE_CREDENTIALS", "")  # path to service-account JSON
+_raw_creds = os.getenv("FIREBASE_CREDENTIALS", "")
+# Resolve relative paths against BASE_DIR so it works regardless of where uvicorn is launched
+if _raw_creds and not os.path.isabs(_raw_creds):
+    FIREBASE_CREDENTIALS = str(BASE_DIR / _raw_creds)
+else:
+    FIREBASE_CREDENTIALS = _raw_creds
 
 # ── CORS ─────────────────────────────────────────────────────────────
 CORS_ORIGINS = [

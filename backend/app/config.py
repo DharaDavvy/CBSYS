@@ -39,8 +39,10 @@ else:
 
 # ── CORS ─────────────────────────────────────────────────────────────
 CORS_ORIGINS = [
-    "http://localhost:5173",   # Vite dev server
+    "http://localhost:5173",        # Vite dev server
     "http://127.0.0.1:5173",
+    "https://cbsys.onrender.com",   # Backend (Render)
+    "https://cbsys.vercel.app",     # Frontend (Vercel)
 ]
 # Allow additional origins via env var (space-separated)
 _extra = os.getenv("CORS_EXTRA_ORIGINS", "")

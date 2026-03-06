@@ -69,10 +69,11 @@ export default function Login() {
         await loginWithMatric(matric, password);
         navigate("/dashboard");
       } else if (view === "forgot") {
-        await resetPasswordWithMatric(matric);
-        setMessage("If that matric number exists, a reset link has been configured (Internal simulation)");
-        // Note: For real use with synthetic emails, this requires custom backend handling.
-        // We just show a success message here mimicking the design.
+        // Password reset emails cannot be delivered to synthetic faculty.local addresses.
+        // Direct students to their department admin for manual resets.
+        setMessage(
+          "Password reset emails cannot be sent to your account. Please contact your department administrator or ICT unit to reset your password."
+        );
       }
     } catch (err) {
       if (err.code === "auth/user-not-found" || err.code === "auth/invalid-credential") {

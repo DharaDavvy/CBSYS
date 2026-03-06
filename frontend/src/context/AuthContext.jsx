@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../services/firebase";
+import { startKeepAlive, stopKeepAlive } from "../services/keepAlive";
 
 const AuthContext = createContext(null);
 
@@ -15,13 +16,21 @@ export function AuthProvider({ children }) {
         (user) => {
           setCurrentUser(user);
           setLoading(false);
+          if (user) {
+            startKeepAlive();
+          } else {
+            stopKeepAlive();
+          }
         },
         (error) => {
           console.error("[Auth] onAuthStateChanged error:", error);
           setLoading(false);
         }
       );
-      return unsubscribe;
+      return () => {
+        unsubscribe();
+        stopKeepAlive();
+      };
     } catch (err) {
       console.error("[Auth] Failed to initialise auth listener:", err);
       setLoading(false);

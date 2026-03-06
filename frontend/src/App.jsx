@@ -7,6 +7,7 @@ import Dashboard from "./components/Layout/Dashboard";
 import ChatWindow from "./components/Chat/ChatWindow";
 import VisualRoadmap from "./components/Roadmap/VisualRoadmap";
 import Profile from "./components/Profile/Profile";
+import Transcript from "./components/Profile/Transcript";
 
 function ProtectedRoute({ children }) {
   const { currentUser } = useAuth();
@@ -65,6 +66,7 @@ export default function App() {
         <Route index element={<ChatWindow />} />
         <Route path="roadmap" element={<VisualRoadmap />} />
         <Route path="profile" element={<Profile />} />
+        <Route path="transcript" element={<Transcript />} />
       </Route>
 
       {/* Fallback */}

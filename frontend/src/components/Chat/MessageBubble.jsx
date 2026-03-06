@@ -1,3 +1,5 @@
+import Markdown from "react-markdown";
+
 export default function MessageBubble({ message }) {
   const isUser = message.role === "user";
 
@@ -10,9 +12,13 @@ export default function MessageBubble({ message }) {
             : "bg-gray-100 text-gray-900 rounded-none"
         }`}
       >
-        <p className="text-sm whitespace-pre-wrap leading-relaxed">
-          {message.content}
-        </p>
+        {isUser ? (
+          <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
+        ) : (
+          <div className="text-sm leading-relaxed prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0 prose-headings:my-2">
+            <Markdown>{message.content}</Markdown>
+          </div>
+        )}
 
         {/* Source citations */}
         {!isUser && message.sources?.length > 0 && (

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useChat } from "../../hooks/useChat";
 import MessageBubble from "./MessageBubble";
+import ThinkingBubble from "./ThinkingBubble";
 
 export default function ChatWindow() {
   const { messages, loading, error, send } = useChat();
@@ -49,17 +50,7 @@ export default function ChatWindow() {
           <MessageBubble key={i} message={msg} />
         ))}
 
-        {loading && (
-          <div className="flex justify-start mb-4">
-            <div className="bg-gray-100 rounded-none rounded-none px-4 py-3">
-              <div className="flex gap-1.5">
-                <span className="w-2 h-2 bg-gray-400 rounded-none animate-bounce" style={{ animationDelay: "0ms" }} />
-                <span className="w-2 h-2 bg-gray-400 rounded-none animate-bounce" style={{ animationDelay: "150ms" }} />
-                <span className="w-2 h-2 bg-gray-400 rounded-none animate-bounce" style={{ animationDelay: "300ms" }} />
-              </div>
-            </div>
-          </div>
-        )}
+        {loading && <ThinkingBubble />}
 
         {error && (
           <div className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-none mb-4">

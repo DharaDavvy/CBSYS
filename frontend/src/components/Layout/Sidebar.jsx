@@ -40,7 +40,7 @@ const navItems = [
   },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, onClose }) {
   const navigate = useNavigate();
 
   async function handleLogout() {
@@ -49,7 +49,14 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="w-64 bg-white border-r border-gray-200 flex flex-col h-full">
+    <aside
+      className={`
+        fixed inset-y-0 left-0 z-30 w-64 bg-white border-r border-gray-200 flex flex-col
+        transform transition-transform duration-200 ease-in-out
+        ${isOpen ? "translate-x-0" : "-translate-x-full"}
+        md:relative md:translate-x-0 md:z-auto md:shrink-0
+      `}
+    >
       {/* Brand */}
       <div className="px-6 py-5 border-b border-gray-200">
         <div className="flex items-center gap-3">
@@ -77,6 +84,7 @@ export default function Sidebar() {
                   : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
               }`
             }
+            onClick={onClose}
           >
             {item.icon}
             {item.label}

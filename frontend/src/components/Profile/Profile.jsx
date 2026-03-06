@@ -36,7 +36,7 @@ export default function Profile() {
   }
 
   return (
-    <div className="p-6 max-w-2xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-2xl mx-auto">
       <h2 className="text-xl font-bold text-gray-900 mb-6">Profile</h2>
 
       {/* User info */}

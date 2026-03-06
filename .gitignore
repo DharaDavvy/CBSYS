@@ -17,6 +17,7 @@ backend/faiss_store/
 !package.json
 !package-lock.json
 !tsconfig.json
+!vercel.json
 
 # ── Node ─────────────────────────────────────────────────────────────
 node_modules/

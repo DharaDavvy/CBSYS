@@ -61,22 +61,29 @@ def main():
     print(f"  Split into {len(chunks)} chunk(s)  (size={CHUNK_SIZE}, overlap={CHUNK_OVERLAP}).")
 
     # ── 3. Embed in batches and build FAISS index ────────────────────
-    print("Embedding chunks with HuggingFace API ...")
-    BATCH_SIZE = 16
-    index = faiss.IndexFlatIP(EMBEDDING_DIM)
-
-    # Checkpoint: if a partial index already exists, load it and skip done chunks
-    checkpoint_meta: list[dict] = []
-    start_chunk = 0
     checkpoint_index_path = os.path.join(FAISS_DIR, "index.faiss")
     checkpoint_meta_path = os.path.join(FAISS_DIR, "metadata.json")
+
+    # Skip entirely if a complete index already exists
     if os.path.exists(checkpoint_index_path) and os.path.exists(checkpoint_meta_path):
-        index, checkpoint_meta = load_index(FAISS_DIR)
-        start_chunk = len(checkpoint_meta)
-        print(f"  Resuming from chunk {start_chunk}/{len(chunks)} (checkpoint found)")
-        chunks_remaining = chunks[start_chunk:]
+        index, existing_meta = load_index(FAISS_DIR)
+        if len(existing_meta) >= len(chunks):
+            print(f"  Index already complete ({len(existing_meta)} chunks) — skipping embedding.")
+            checkpoint_meta = existing_meta
+            chunks_remaining = []
+        else:
+            index, checkpoint_meta = load_index(FAISS_DIR)
+            start_chunk = len(checkpoint_meta)
+            print(f"  Resuming from chunk {start_chunk}/{len(chunks)} (checkpoint found)")
+            chunks_remaining = chunks[start_chunk:]
     else:
+        index = faiss.IndexFlatIP(EMBEDDING_DIM)
+        checkpoint_meta = []
         chunks_remaining = chunks
+
+    print("Embedding chunks with HuggingFace API ...")
+    BATCH_SIZE = 16
+    start_chunk = len(checkpoint_meta)
 
     for batch_start in range(0, len(chunks_remaining), BATCH_SIZE):
         batch = chunks_remaining[batch_start : batch_start + BATCH_SIZE]
@@ -89,9 +96,9 @@ def main():
         # Save checkpoint after every batch so we can resume on failure
         save_index(index, checkpoint_meta, FAISS_DIR)
 
-    # ── 4. Persist to disk ───────────────────────────────────────────
+    # ── 4. Final save ────────────────────────────────────────────────
     print(f"Saving FAISS index to: {FAISS_DIR}")
-    save_index(index, chunks, FAISS_DIR)
+    save_index(index, checkpoint_meta, FAISS_DIR)
 
     # ── 5. Quick sanity check ────────────────────────────────────────
     from app.services.embeddings import init_vectorstore, search

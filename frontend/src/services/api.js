@@ -54,6 +54,14 @@ export async function generateRoadmap({ level, interests, completedCourses }) {
   return data; // { roadmap, sources }
 }
 
+export async function generateCareerRoadmap({ career_sector, department }) {
+  const { data } = await api.post("/generate-roadmap/career-roadmap", {
+    career_sector,
+    department: department || "Computer Science",
+  });
+  return data; // { pillars, dependencies, sources }
+}
+
 // ── User ────────────────────────────────────────────────────────────
 
 export async function saveUser(userData) {

@@ -92,3 +92,28 @@ class ChatMessageOut(BaseModel):
 
 class ChatHistoryResponse(BaseModel):
     messages: list[ChatMessageOut] = []
+
+
+# ── Knowledge Graph ───────────────────────────────────────────────────
+
+class KnowledgeGraphRequest(BaseModel):
+    career_sector: str                 # e.g. "Web Development"
+    department: str = "Computer Science"
+
+
+class KnowledgePillar(BaseModel):
+    id: str                            # snake_case identifier
+    label: str                         # Human-readable pillar name
+    description: str = ""
+    courses: list[str] = []            # "COURSE CODE – Title (N units)"
+
+
+class KnowledgeDependency(BaseModel):
+    from_pillar: str                   # prerequisite pillar id
+    to_pillar: str                     # depends-on pillar id
+
+
+class KnowledgeGraphResponse(BaseModel):
+    pillars: list[KnowledgePillar] = []
+    dependencies: list[KnowledgeDependency] = []
+    sources: list[str] = []

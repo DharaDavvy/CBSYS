@@ -8,10 +8,12 @@ Flow:
   4. Return (answer, sources)
 """
 
+import json
+
 from app.services import embeddings as emb
 from app.services import llm as llm_service
 from app.prompts.advisor import ADVISOR_SYSTEM_PROMPT
-from app.prompts.roadmap import ROADMAP_SYSTEM_PROMPT
+from app.prompts.roadmap import ROADMAP_SYSTEM_PROMPT, KNOWLEDGE_SEQUENCING_PROMPT
 
 
 def _format_context(docs) -> tuple[str, list[str]]:
@@ -142,7 +144,6 @@ async def generate_roadmap(
     raw = await llm_service.generate(prompt)
 
     # Try to parse the JSON from the LLM output
-    import json
 
     roadmap: list[dict] = []
     try:
@@ -158,3 +159,53 @@ async def generate_roadmap(
         roadmap = [{"semester": "Raw response", "courses": [raw]}]
 
     return {"roadmap": roadmap, "sources": sources}
+
+
+async def generate_knowledge_graph(
+    career_sector: str,
+    department: str = "Computer Science",
+    k: int = 10,
+) -> dict:
+    """Generate a knowledge pillar dependency graph for a career sector using RAG.
+
+    Returns {"pillars": list[dict], "dependencies": list[dict], "sources": list[str]}
+    Each dependency dict has keys "from_pillar" and "to_pillar".
+    """
+    query = (
+        f"{department} courses foundations prerequisites for {career_sector} career"
+    )
+    docs = emb.search(query, k=k)
+
+    if not docs:
+        return {"pillars": [], "dependencies": [], "sources": []}
+
+    context_text, sources = _format_context(docs)
+    prompt = KNOWLEDGE_SEQUENCING_PROMPT.format(
+        career_sector=career_sector,
+        department=department,
+        context=context_text,
+    )
+
+    raw = await llm_service.generate(prompt)
+
+    pillars: list[dict] = []
+    dependencies: list[dict] = []
+    try:
+        cleaned = raw.strip()
+        if cleaned.startswith("```"):
+            cleaned = cleaned.split("\n", 1)[1]
+            cleaned = cleaned.rsplit("```", 1)[0]
+        parsed = json.loads(cleaned)
+        pillars = parsed.get("pillars", [])
+        # Remap "from"/"to" keys (LLM output) → "from_pillar"/"to_pillar" (schema)
+        for dep in parsed.get("dependencies", []):
+            dependencies.append({
+                "from_pillar": dep.get("from", ""),
+                "to_pillar": dep.get("to", ""),
+            })
+    except (json.JSONDecodeError, IndexError, AttributeError):
+        # Fallback: single pillar containing the raw LLM text
+        pillars = [{"id": "raw", "label": "Raw Response", "description": raw[:300], "courses": []}]
+        dependencies = []
+
+    return {"pillars": pillars, "dependencies": dependencies, "sources": sources}

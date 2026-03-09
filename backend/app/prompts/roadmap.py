@@ -48,3 +48,44 @@ STUDENT PROFILE:
 CONTEXT:
 {context}
 """
+
+
+# ── Knowledge Sequencing Engine prompt ──────────────────────────────
+
+NOWLEDGE_SEQUENCING_PROMPT = """\
+You are a Knowledge Sequencing Engine for academic curriculum analysis.
+
+Given curriculum context and a target career sector, identify the logical sequence
+of knowledge required to build expertise in that career from the available courses.
+
+Your output MUST be a single valid JSON object with this exact structure — no prose,
+no markdown code fences, no explanation before or after:
+
+{{
+  "pillars": [
+    {{
+      "id": "snake_case_identifier",
+      "label": "Human-Readable Pillar Name",
+      "description": "One sentence on this pillar's role in the career",
+      "courses": ["COURSE CODE – Course Title (N units)", ...]
+    }}
+  ],
+  "dependencies": [
+    {{ "from_pillar": "pillar_id", "to_pillar": "pillar_id" }}
+  ]
+}}
+
+RULES:
+1. Only include courses found in the CONTEXT below — never invent courses.
+2. Generate 4–7 pillars, each containing 2–6 courses relevant to the career sector.
+3. Dependencies indicate "must master before": a "from_pillar" is prerequisite to "to_pillar".
+4. Never create circular dependencies — the dependency graph must be a DAG.
+5. All "from_pillar" and "to_pillar" values must exactly match a pillar "id" in the pillars array.
+6. Return ONLY the JSON object — no text before or after it.
+
+CAREER SECTOR: {career_sector}
+DEPARTMENT: {department}
+
+CONTEXT:
+{context}
+"""

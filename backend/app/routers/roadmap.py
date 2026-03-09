@@ -6,7 +6,13 @@ using the student's profile and the RAG pipeline.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from app.models.schemas import RoadmapRequest, RoadmapResponse, SemesterNode
+from app.models.schemas import (
+    RoadmapRequest,
+    RoadmapResponse,
+    SemesterNode,
+    KnowledgeGraphRequest,
+    KnowledgeGraphResponse,
+)
 from app.services import rag
 from app.routers.auth import verify_token
 from app.models import firebase as fb
@@ -83,5 +89,31 @@ async def generate_roadmap(
 
     return RoadmapResponse(
         roadmap=roadmap_nodes,
+        sources=result["sources"],
+    )
+
+
+@router.post("/career-roadmap", response_model=KnowledgeGraphResponse)
+async def generate_career_roadmap(
+    body: KnowledgeGraphRequest,
+    uid: str = Depends(verify_token),
+):
+    """Generate a knowledge pillar dependency graph for a career sector.
+
+    Retrieves curriculum chunks relevant to the requested career sector,
+    then uses the Knowledge Sequencing Engine prompt to identify knowledge
+    pillars and their prerequisite dependencies, returned as structured JSON.
+    """
+    user = fb.get_user(uid) or {}
+    department = body.department or user.get("department", "Computer Science")
+
+    result = await rag.generate_knowledge_graph(
+        career_sector=body.career_sector,
+        department=department,
+    )
+
+    return KnowledgeGraphResponse(
+        pillars=result["pillars"],
+        dependencies=result["dependencies"],
         sources=result["sources"],
     )

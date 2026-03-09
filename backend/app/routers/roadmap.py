@@ -93,7 +93,7 @@ async def generate_roadmap(
     )
 
 
-@router.post("/career-roadmap", response_model=KnowledgeGraphResponse)
+@router.post("/career", response_model=KnowledgeGraphResponse)
 async def generate_career_roadmap(
     body: KnowledgeGraphRequest,
     uid: str = Depends(verify_token),

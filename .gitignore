@@ -8,8 +8,9 @@ __pycache__/
 # ── ChromaDB persisted data (large, rebuild with ingest.py) ──────────
 backend/chroma_store/
 
-# ── FAISS vector store (rebuilt by ingest.py on each deploy) ───────
-backend/faiss_store/
+# ── FAISS vector store ─────────────────────────────────────────────
+# NOTE: faiss_store/ is committed so the deployment has pre-built embeddings.
+# Re-run scripts/ingest.py locally if the source PDF changes.
 
 # ── Environment & secrets ────────────────────────────────────────────
 .env

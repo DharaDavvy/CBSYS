@@ -9,7 +9,6 @@ from typing import Optional
 # ── Chat ─────────────────────────────────────────────────────────────
 
 class ChatRequest(BaseModel):
-    user_id: str
     message: str
 
 
@@ -21,7 +20,6 @@ class ChatResponse(BaseModel):
 # ── Roadmap ──────────────────────────────────────────────────────────
 
 class RoadmapRequest(BaseModel):
-    user_id: str
     level: int | None = None           # 100–500; fetched from Firestore if omitted
     interests: list[str] = []
     completed_courses: list[str] = []  # course codes

@@ -39,7 +39,7 @@ api.interceptors.request.use(async (config) => {
 // ── Chat ────────────────────────────────────────────────────────────
 
 export async function sendMessage(message) {
-  const { data } = await api.post("/chat", { user_id: "", message });
+  const { data } = await api.post("/chat", { message });
   return data; // { response, sources }
 }
 
@@ -47,7 +47,6 @@ export async function sendMessage(message) {
 
 export async function generateRoadmap({ level, interests, completedCourses }) {
   const { data } = await api.post("/generate-roadmap", {
-    user_id: "",
     level,
     interests,
     completed_courses: completedCourses || [],

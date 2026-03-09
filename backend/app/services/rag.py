@@ -23,10 +23,41 @@ def _format_context(docs) -> tuple[str, list[str]]:
     sources: list[str] = []
 
     for i, doc in enumerate(docs, 1):
-        page = doc.metadata.get("page", "?")
-        source_file = doc.metadata.get("source", "NUC CCMAS Computing")
-        source_label = f"{source_file}, Page {page}"
-        context_parts.append(f"[{i}] (Page {page})\n{doc.page_content}")
+        meta = doc.metadata
+        page = meta.get("page", "?")
+        source_file = meta.get("source", "NUC CCMAS Computing")
+        course_code = meta.get("course_code", "")
+        section = meta.get("section", "")
+        level = meta.get("level", "")
+        semester = meta.get("semester", "")
+        units = meta.get("units", "")
+        prerequisites = meta.get("prerequisites", [])
+
+        # Rich source label for citations
+        label_parts = [source_file]
+        if section:
+            label_parts.append(f"Section {section}")
+        else:
+            label_parts.append(f"Page {page}")
+        if course_code:
+            label_parts.append(course_code)
+        source_label = ", ".join(label_parts)
+
+        # Rich context header for LLM
+        header_parts = [f"[{i}]"]
+        if course_code:
+            header_parts.append(f"Course: {course_code}")
+        if level:
+            header_parts.append(f"Level: {level}")
+        if semester:
+            header_parts.append(f"Semester: {semester}")
+        if units:
+            header_parts.append(f"Units: {units}")
+        if prerequisites:
+            header_parts.append(f"Prerequisites: {', '.join(prerequisites)}")
+        header_parts.append(f"Page: {page}")
+
+        context_parts.append(f"{' | '.join(header_parts)}\n{doc.page_content}")
         if source_label not in sources:
             sources.append(source_label)
 

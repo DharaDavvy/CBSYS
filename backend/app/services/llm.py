@@ -1,5 +1,5 @@
 """
-LLM client — wraps Ollama (local) with a Groq cloud fallback.
+LLM client — Ollama (local) → Groq → Gemini → HuggingFace fallback chain.
 
 Exposes a single `generate()` coroutine used by the RAG service.
 """
@@ -116,21 +116,23 @@ async def init_llm() -> BaseLanguageModel:
     Called once from the FastAPI lifespan handler.
     """
     global _llm
-    if await _ollama_is_reachable():
-        _llm = _build_ollama()
-        print("[LLM] Using local Ollama →", OLLAMA_MODEL)
-    elif HF_API_TOKEN:
+    if HF_API_TOKEN:
         _llm = _build_huggingface()
-        print("[LLM] Ollama unreachable \u2014 falling back to HuggingFace Inference")
-    elif GOOGLE_API_KEY:
-        _llm = _build_gemini()
-        print("[LLM] Ollama unreachable \u2014 falling back to Google Gemini")
-    elif GROQ_API_KEY:
-        _llm = _build_groq()
-        print("[LLM] Ollama unreachable \u2014 falling back to Groq cloud")
+        print("[LLM] Using HuggingFace Inference API")
     else:
-        _llm = _build_ollama()
-        print("[LLM] WARNING: Ollama unreachable and no cloud API key set")
+        print("[LLM] WARNING: HF_API_TOKEN is not set — HuggingFace (primary) unavailable")
+        if await _ollama_is_reachable():
+            _llm = _build_ollama()
+            print("[LLM] Using local Ollama →", OLLAMA_MODEL)
+        elif GROQ_API_KEY:
+            _llm = _build_groq()
+            print("[LLM] Falling back to Groq cloud")
+        elif GOOGLE_API_KEY:
+            _llm = _build_gemini()
+            print("[LLM] Falling back to Google Gemini")
+        else:
+            _llm = _build_ollama()
+            print("[LLM] WARNING: No cloud API key set and Ollama may be unreachable")
     return _llm
 
 

@@ -96,6 +96,9 @@ def init_vectorstore() -> None:
     """Load the persisted FAISS index. Called once at startup."""
     global _index, _metadata
 
+    if not HF_API_TOKEN:
+        print("[Embeddings] WARNING: HF_API_TOKEN is not set — embedding queries will fail")
+
     idx_path = os.path.join(FAISS_DIR, INDEX_FILE)
     if not os.path.exists(idx_path):
         print(f"[Embeddings] No FAISS index found at {FAISS_DIR} — run ingest.py first")

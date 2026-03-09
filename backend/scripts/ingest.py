@@ -24,6 +24,60 @@ from app.services.embeddings import embed_texts, save_index, load_index, EMBEDDI
 from app.services.text_splitter import split_text
 
 import faiss
+import re
+
+
+# ── Metadata extraction ──────────────────────────────────────────────
+
+def extract_chunk_metadata(text: str, page: int, source: str) -> dict:
+    """Parse structured metadata from a curriculum chunk's text.
+
+    Extracts: course_code, level, department, semester, units,
+              prerequisites, related_codes, section.
+    All fields are optional — only present when confidently detected.
+    """
+    meta: dict = {"page": page, "source": source}
+
+    # Course codes — e.g. CSC 301, STA 111, MTH 211
+    codes = re.findall(r'\b([A-Z]{2,4})\s*(\d{3})\b', text)
+    if codes:
+        dept_abbr, num = codes[0]
+        meta["course_code"] = f"{dept_abbr} {num}"
+        meta["level"] = int(num[0]) * 100        # 301 → 300
+        meta["department"] = dept_abbr
+        unique_codes = list(dict.fromkeys(f"{d} {n}" for d, n in codes))
+        if len(unique_codes) > 1:
+            meta["related_codes"] = unique_codes
+
+    # Credit units — e.g. "3 Units", "2 Credit Hours"
+    units_match = re.search(r'\b(\d+)\s*(?:credit\s*)?(?:units?|hours?)\b', text, re.IGNORECASE)
+    if units_match:
+        meta["units"] = int(units_match.group(1))
+
+    # Semester
+    sem_match = re.search(r'\b(first|second|1st|2nd)\s+semester\b', text, re.IGNORECASE)
+    if sem_match:
+        meta["semester"] = 1 if sem_match.group(1).lower() in ("first", "1st") else 2
+    else:
+        sem_num = re.search(r'\bsemester\s*([12])\b', text, re.IGNORECASE)
+        if sem_num:
+            meta["semester"] = int(sem_num.group(1))
+
+    # Prerequisites
+    prereq_match = re.search(
+        r'pre[-\s]?requisites?\s*[:\-]?\s*([A-Z]{2,4}\s*\d{3}(?:\s*[,/]\s*[A-Z]{2,4}\s*\d{3})*)',
+        text, re.IGNORECASE,
+    )
+    if prereq_match:
+        raw = prereq_match.group(1)
+        meta["prerequisites"] = [p.strip() for p in re.split(r'[,/]\s*', raw)]
+
+    # Section number — e.g. "3.2", "Section 4.1.2"
+    section_match = re.search(r'(?:^|\bsection\s+)(\d+\.\d+(?:\.\d+)?)\b', text, re.IGNORECASE | re.MULTILINE)
+    if section_match:
+        meta["section"] = section_match.group(1)
+
+    return meta
 
 
 def main():
@@ -53,11 +107,9 @@ def main():
     for page_info in pages_text:
         splits = split_text(page_info["text"], chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVERLAP)
         for s in splits:
-            chunks.append({
-                "text": s,
-                "page": page_info["page"],
-                "source": page_info["source"],
-            })
+            meta = extract_chunk_metadata(s, page_info["page"], page_info["source"])
+            meta["text"] = s
+            chunks.append(meta)
     print(f"  Split into {len(chunks)} chunk(s)  (size={CHUNK_SIZE}, overlap={CHUNK_OVERLAP}).")
 
     # ── 3. Embed in batches and build FAISS index ────────────────────

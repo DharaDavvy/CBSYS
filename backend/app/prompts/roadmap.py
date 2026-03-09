@@ -1,5 +1,6 @@
+# -*- coding: utf-8 -*-
 """
-Prompt template for academic roadmap generation.
+Prompt templates for academic roadmap and knowledge-sequencing generation.
 """
 
 ROADMAP_SYSTEM_PROMPT = """\
@@ -49,10 +50,9 @@ CONTEXT:
 {context}
 """
 
-
 # ── Knowledge Sequencing Engine prompt ──────────────────────────────
 
-NOWLEDGE_SEQUENCING_PROMPT = """\
+KNOWLEDGE_SEQUENCING_PROMPT = """\
 You are a Knowledge Sequencing Engine for academic curriculum analysis.
 
 Given curriculum context and a target career sector, identify the logical sequence

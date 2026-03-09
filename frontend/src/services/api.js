@@ -43,6 +43,7 @@ export async function sendMessage(message) {
   return data; // { response, sources }
 }
 
+
 // ── Roadmap ─────────────────────────────────────────────────────────
 
 export async function generateRoadmap({ level, interests, completedCourses }) {
@@ -54,14 +55,14 @@ export async function generateRoadmap({ level, interests, completedCourses }) {
   return data; // { roadmap, sources }
 }
 
-export async function generateCareerRoadmap({ career_sector, department }) {
-  const { data } = await api.post("/generate-roadmap/career-roadmap", {
-    career_sector,
-    department: department || "Computer Science",
+// ADD THIS NEW FUNCTION:
+export async function generateCareerRoadmap({ career_sector }) {
+  // This must match the backend route we are about to create
+  const { data } = await api.post("/generate-roadmap/career", {
+    career_sector: career_sector,
   });
-  return data; // { pillars, dependencies, sources }
+  return data; 
 }
-
 // ── User ────────────────────────────────────────────────────────────
 
 export async function saveUser(userData) {

@@ -62,6 +62,40 @@ const PILLAR_COLOURS = [
 const TAB_ACADEMIC = "academic";
 const TAB_CAREER   = "career";
 
+function getStageTheme(semesterLabel) {
+  const label = (semesterLabel || "").toLowerCase();
+  if (label.includes("beginner")) {
+    return {
+      panel: "#f4fce8",
+      border: "#8cc63f",
+      text: "#3d6b00",
+      chip: "#e1f2b6",
+    };
+  }
+  if (label.includes("intermediate")) {
+    return {
+      panel: "#eff6ff",
+      border: "#3b82f6",
+      text: "#1e3a8a",
+      chip: "#dbeafe",
+    };
+  }
+  if (label.includes("advanced")) {
+    return {
+      panel: "#fdf2f8",
+      border: "#db2777",
+      text: "#831843",
+      chip: "#fce7f3",
+    };
+  }
+  return {
+    panel: "#f8fafc",
+    border: "#94a3b8",
+    text: "#334155",
+    chip: "#e2e8f0",
+  };
+}
+
 export default function VisualRoadmap() {
   const [activeTab, setActiveTab] = useState(TAB_ACADEMIC);
 
@@ -102,6 +136,7 @@ export default function VisualRoadmap() {
       const newEdges = [];
 
       (data.roadmap || []).forEach((sem, semIdx) => {
+        const theme = getStageTheme(sem.semester);
         const semId = `sem-${semIdx}`;
         newNodes.push({
           id: semId,
@@ -109,12 +144,17 @@ export default function VisualRoadmap() {
           position: { x: semIdx * 320, y: 0 },
           data: {
             label: (
-              <div className="font-bold text-[#8cc63f] text-sm">{sem.semester}</div>
+              <div className="space-y-1">
+                <div className="font-bold text-sm" style={{ color: theme.text }}>{sem.semester}</div>
+                <div className="inline-flex items-center px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide rounded-none" style={{ background: theme.chip, color: theme.text }}>
+                  {sem.semester.split("—").pop()?.trim() || sem.semester}
+                </div>
+              </div>
             ),
           },
           style: {
-            background: "#f4fce8",
-            border: "2px solid #8cc63f",
+            background: theme.panel,
+            border: `2px solid ${theme.border}`,
             borderRadius: 0,
             padding: 10,
             minWidth: 250,
@@ -130,7 +170,7 @@ export default function VisualRoadmap() {
             data: { label: <div className="text-xs text-gray-700">{course}</div> },
             style: {
               background: "#FFFFFF",
-              border: "1px solid #D1D5DB",
+              border: `1px solid ${theme.border}`,
               borderRadius: 0,
               padding: 8,
               minWidth: 250,
@@ -140,16 +180,17 @@ export default function VisualRoadmap() {
             id: `edge-${semId}-${cid}`,
             source: semId,
             target: cid,
-            style: { stroke: "#c6e69f" },
+            style: { stroke: theme.border },
           });
         });
 
         if (semIdx > 0) {
+          const prevTheme = getStageTheme(data.roadmap[semIdx - 1]?.semester);
           newEdges.push({
             id: `edge-sem-${semIdx - 1}-sem-${semIdx}`,
             source: `sem-${semIdx - 1}`,
             target: semId,
-            style: { stroke: "#8cc63f", strokeWidth: 2 },
+            style: { stroke: prevTheme.border, strokeWidth: 2 },
             animated: true,
           });
         }

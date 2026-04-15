@@ -8,12 +8,10 @@ Flow:
   4. Return (answer, sources)
 """
 
-import json
-
 from app.services import embeddings as emb
 from app.services import llm as llm_service
 from app.prompts.advisor import ADVISOR_SYSTEM_PROMPT
-from app.prompts.roadmap import ROADMAP_SYSTEM_PROMPT, KNOWLEDGE_SEQUENCING_PROMPT
+from app.services.sql_roadmap import build_sql_roadmap, build_sql_knowledge_graph
 
 
 def _format_context(docs) -> tuple[str, list[str]]:
@@ -107,58 +105,21 @@ async def generate_roadmap(
     department: str = "Computer Science",
     k: int = 8,
 ) -> dict:
-    """Generate a structured academic roadmap using RAG.
+    """Generate a structured academic roadmap from the SQL curriculum seeds.
 
     Returns {"roadmap": list[dict], "sources": list[str]}
     """
     if skills is None:
         skills = []
 
-    # Build a composite query anchored to the student's remaining years,
-    # their target career, and their interests so we retrieve the most
-    # relevant curriculum chunks.
-    year = level // 100  # e.g. 300 → 3
-    level_terms = " ".join(
-        f"year {y} level {y * 100}" for y in range(year, 6)
-    )
-    query_parts = [f"{department} programme structure {level_terms}"]
-    if target_career:
-        query_parts.append(f"courses for career in {target_career}")
-    if interests:
-        query_parts.append("courses related to " + ", ".join(interests))
-    query = ". ".join(query_parts)
-
-    docs = emb.search(query, k=k)
-    context_text, sources = _format_context(docs)
-
-    prompt = ROADMAP_SYSTEM_PROMPT.format(
+    return build_sql_roadmap(
         level=level,
+        interests=interests,
+        completed_courses=completed_courses,
+        target_career=target_career,
+        skills=skills,
         department=department,
-        target_career=target_career or "not specified",
-        interests=", ".join(interests) if interests else "none specified",
-        skills=", ".join(skills) if skills else "none listed",
-        completed_courses=", ".join(completed_courses) if completed_courses else "none",
-        context=context_text,
     )
-
-    raw = await llm_service.generate(prompt)
-
-    # Try to parse the JSON from the LLM output
-
-    roadmap: list[dict] = []
-    try:
-        # The LLM should return pure JSON, but sometimes wraps it in markdown
-        cleaned = raw.strip()
-        if cleaned.startswith("```"):
-            # Strip markdown code fences
-            cleaned = cleaned.split("\n", 1)[1]
-            cleaned = cleaned.rsplit("```", 1)[0]
-        roadmap = json.loads(cleaned)
-    except (json.JSONDecodeError, IndexError):
-        # Return the raw text so the caller can still display something
-        roadmap = [{"semester": "Raw response", "courses": [raw]}]
-
-    return {"roadmap": roadmap, "sources": sources}
 
 
 async def generate_knowledge_graph(
@@ -166,46 +127,12 @@ async def generate_knowledge_graph(
     department: str = "Computer Science",
     k: int = 10,
 ) -> dict:
-    """Generate a knowledge pillar dependency graph for a career sector using RAG.
+    """Generate a knowledge pillar dependency graph from the SQL curriculum.
 
     Returns {"pillars": list[dict], "dependencies": list[dict], "sources": list[str]}
     Each dependency dict has keys "from_pillar" and "to_pillar".
     """
-    query = (
-        f"{department} courses foundations prerequisites for {career_sector} career"
-    )
-    docs = emb.search(query, k=k)
-
-    if not docs:
-        return {"pillars": [], "dependencies": [], "sources": []}
-
-    context_text, sources = _format_context(docs)
-    prompt = KNOWLEDGE_SEQUENCING_PROMPT.format(
+    return build_sql_knowledge_graph(
         career_sector=career_sector,
         department=department,
-        context=context_text,
     )
-
-    raw = await llm_service.generate(prompt)
-
-    pillars: list[dict] = []
-    dependencies: list[dict] = []
-    try:
-        cleaned = raw.strip()
-        if cleaned.startswith("```"):
-            cleaned = cleaned.split("\n", 1)[1]
-            cleaned = cleaned.rsplit("```", 1)[0]
-        parsed = json.loads(cleaned)
-        pillars = parsed.get("pillars", [])
-        # Remap "from"/"to" keys (LLM output) → "from_pillar"/"to_pillar" (schema)
-        for dep in parsed.get("dependencies", []):
-            dependencies.append({
-                "from_pillar": dep.get("from", ""),
-                "to_pillar": dep.get("to", ""),
-            })
-    except (json.JSONDecodeError, IndexError, AttributeError):
-        # Fallback: single pillar containing the raw LLM text
-        pillars = [{"id": "raw", "label": "Raw Response", "description": raw[:300], "courses": []}]
-        dependencies = []
-
-    return {"pillars": pillars, "dependencies": dependencies, "sources": sources}

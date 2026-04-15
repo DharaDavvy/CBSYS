@@ -4,7 +4,7 @@ Tests for the RAG service — mocks embeddings and LLM to test orchestration log
 
 import pytest
 from unittest.mock import patch, AsyncMock
-from app.services.rag import ask, generate_roadmap, _format_context
+from app.services.rag import ask, generate_roadmap, generate_knowledge_graph, _format_context
 from app.services.embeddings import Document
 
 
@@ -95,38 +95,58 @@ class TestAsk:
 
 class TestGenerateRoadmap:
     @pytest.mark.asyncio
-    async def test_returns_roadmap_structure(self):
-        import json
-
-        doc = Document(
-            page_content="Year 1 courses include CSC 101.",
-            metadata={"page": 1, "source": "CCMAS.pdf", "course_code": "CSC 101"},
+    async def test_returns_sql_roadmap_structure(self):
+        result = await generate_roadmap(
+            level=100,
+            interests=["Data Science"],
+            completed_courses=[],
+            target_career="Data Analyst",
+            skills=["Python"],
+            department="Computer Science",
         )
-        roadmap_json = json.dumps([
-            {"semester": "Year 1 – Semester 1", "courses": ["CSC 101 (2 units)"]},
-        ])
-        with (
-            patch("app.services.rag.emb") as mock_emb,
-            patch("app.services.rag.llm_service") as mock_llm,
-        ):
-            mock_emb.search.return_value = [doc]
-            mock_llm.generate = AsyncMock(return_value=roadmap_json)
-            result = await generate_roadmap(
-                level=100, interests=["AI"], completed_courses=[]
-            )
-            assert len(result["roadmap"]) == 1
-            assert result["roadmap"][0]["semester"] == "Year 1 – Semester 1"
+
+        assert result["roadmap"]
+        assert result["roadmap"][0]["semester"].startswith("Data Science")
+        assert any(
+            "Python Fundamentals" in course
+            for course in result["roadmap"][0]["courses"]
+        )
+        assert "skills.sql" in result["sources"]
+        assert "roadmaps.sql" in result["sources"]
+
+    @pytest.mark.asyncio
+    async def test_completed_titles_remove_skills(self):
+        result = await generate_roadmap(
+            level=100,
+            interests=["Data Science"],
+            completed_courses=["Python Fundamentals", "Statistics Basics"],
+            target_career="Data Analyst",
+            skills=[],
+            department="Computer Science",
+        )
+
+        first_courses = result["roadmap"][0]["courses"]
+        assert all("Python Fundamentals" not in course for course in first_courses)
+        assert all("Statistics Basics" not in course for course in first_courses)
 
     @pytest.mark.asyncio
     async def test_empty_docs_returns_stub_roadmap(self):
-        with (
-            patch("app.services.rag.emb") as mock_emb,
-            patch("app.services.rag.llm_service") as mock_llm,
-        ):
-            mock_emb.search.return_value = []
-            mock_llm.generate = AsyncMock(return_value="[]")
-            result = await generate_roadmap(
-                level=100, interests=[], completed_courses=[]
-            )
-            assert isinstance(result["roadmap"], list)
-            assert result["sources"] == []
+        result = await generate_roadmap(
+            level=100, interests=[], completed_courses=[]
+        )
+
+        assert isinstance(result["roadmap"], list)
+        assert result["sources"]
+
+
+class TestGenerateKnowledgeGraph:
+    @pytest.mark.asyncio
+    async def test_returns_sql_knowledge_graph(self):
+        result = await generate_knowledge_graph(
+            career_sector="Web Development",
+            department="Computer Science",
+        )
+
+        assert len(result["pillars"]) >= 3
+        assert result["dependencies"]
+        assert "resources.sql" in result["sources"]

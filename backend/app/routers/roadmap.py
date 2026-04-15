@@ -52,14 +52,19 @@ async def generate_roadmap(
     interests: list[str] = body.interests or profile.get("interests", [])
 
     # ── Derive completed courses from passing grades only ────────────
-    passed_codes: list[str] = [
+    passed_labels: list[str] = [
         row["code"]
+        for row in transcript_rows
+        if row.get("grade", "").strip().upper() in {g.upper() for g in _PASSING_GRADES}
+    ]
+    passed_titles: list[str] = [
+        row.get("title", "")
         for row in transcript_rows
         if row.get("grade", "").strip().upper() in {g.upper() for g in _PASSING_GRADES}
     ]
     # Allow request body to supplement (union, no duplicates)
     completed_courses: list[str] = list(
-        dict.fromkeys(passed_codes + list(body.completed_courses))
+        dict.fromkeys(passed_labels + passed_titles + list(body.completed_courses))
     )
 
     # ── Extra context signals ────────────────────────────────────────

@@ -7,6 +7,7 @@ const DEPARTMENTS = [
   "Information Technology",
   "Software Engineering",
   "Cyber Security",
+  "Data Science and Analytics",
 ];
 
 const INTEREST_OPTIONS = [

@@ -1,14 +1,14 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  loginWithMatric,
-  registerWithMatric,
-  resetPasswordWithMatric,
+  loginWithEmail,
+  registerWithEmail,
+  resetPasswordWithEmail,
 } from "../../services/firebase";
 
 export default function Login() {
   const [view, setView] = useState("login"); // 'login' | 'register' | 'forgot'
-  const [matric, setMatric] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -23,16 +23,15 @@ export default function Login() {
     setError("");
     setMessage("");
     
-    // Example: CSC/2024/001
-    const matricRegex = /^[a-zA-Z]{3}\/\d{4}\/\d{3,4}$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     
-    if (!matric) {
-      setError("Matric Number is required");
+    if (!email) {
+      setError("Email is required");
       return false;
     }
     
-    if (!matricRegex.test(matric)) {
-      setError("Invalid format. Use format like CSC/2024/001");
+    if (!emailRegex.test(email)) {
+      setError("Please enter a valid email address");
       return false;
     }
 
@@ -63,23 +62,20 @@ export default function Login() {
     try {
       if (view === "register") {
         sessionStorage.setItem("needsOnboarding", "1");
-        await registerWithMatric(matric, password);
+        await registerWithEmail(email, password);
         navigate("/onboarding");
       } else if (view === "login") {
-        await loginWithMatric(matric, password);
+        await loginWithEmail(email, password);
         navigate("/dashboard");
       } else if (view === "forgot") {
-        // Password reset emails cannot be delivered to synthetic faculty.local addresses.
-        // Direct students to their department admin for manual resets.
-        setMessage(
-          "Password reset emails cannot be sent to your account. Please contact your department administrator or ICT unit to reset your password."
-        );
+        await resetPasswordWithEmail(email);
+        setMessage("Password reset link has been sent to your email.");
       }
     } catch (err) {
       if (err.code === "auth/user-not-found" || err.code === "auth/invalid-credential") {
-        setError("Invalid matric number or password.");
+        setError("Invalid email or password.");
       } else if (err.code === "auth/email-already-in-use") {
-        setError("This matric number is already registered. Try logging in.");
+        setError("This email is already registered. Try logging in.");
       } else if (err.code === "auth/too-many-requests") {
         setError("Too many attempts. Please try again later.");
       } else {
@@ -109,7 +105,7 @@ export default function Login() {
 
         {view === "forgot" && (
           <p className="text-sm text-gray-500 text-center mb-6 px-4">
-            No worries, enter your matric number and we will help you reset your password.
+            No worries, enter your email and we will help you reset your password.
           </p>
         )}
 
@@ -128,10 +124,10 @@ export default function Login() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Matric Input */}
+          {/* Email Input */}
           <div className="space-y-1.5">
             <label className="block text-[13px] font-semibold text-gray-700">
-              Matric Number <span className="text-red-500">*</span>
+              Email Address <span className="text-red-500">*</span>
             </label>
             <div className="relative flex items-center">
               <div className="absolute left-3.5 text-gray-400">
@@ -140,10 +136,10 @@ export default function Login() {
                 </svg>
               </div>
               <input
-                type="text"
-                value={matric}
-                onChange={(e) => setMatric(e.target.value.toUpperCase())}
-                placeholder="CSC/2024/001"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="john@example.com"
                 className="w-full pl-11 pr-4 py-3 text-sm border border-gray-200 rounded-none focus:border-[#8cc63f] focus:ring-1 focus:ring-[#8cc63f] outline-none transition-all"
               />
             </div>

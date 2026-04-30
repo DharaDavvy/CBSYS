@@ -22,38 +22,25 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 
 /**
- * Convert a matric number to the synthetic email used by Firebase Auth.
- * e.g. "CSC/2024/001" → "csc-2024-001@faculty.local"
- */
-export function matricToEmail(matric) {
-  return matric.trim().toLowerCase().replace(/\//g, "-") + "@faculty.local";
-}
-
-/**
- * Sign in with matric number + password.
+ * Sign in with email + password.
  * Returns the Firebase UserCredential.
  */
-export async function loginWithMatric(matric, password) {
-  const email = matricToEmail(matric);
+export async function loginWithEmail(email, password) {
   return signInWithEmailAndPassword(auth, email, password);
 }
 
 /**
- * Register a new user with matric number + password.
+ * Register a new user with email + password.
  * Returns the Firebase UserCredential.
  */
-export async function registerWithMatric(matric, password) {
-  const email = matricToEmail(matric);
+export async function registerWithEmail(email, password) {
   return createUserWithEmailAndPassword(auth, email, password);
 }
 
 /**
- * Send a password reset email using the matric number.
- * Note: Since this uses a synthetic email, actual emails won't be delivered 
- * unless a custom email handler is set up mapping to real student emails.
+ * Send a password reset email.
  */
-export async function resetPasswordWithMatric(matric) {
-  const email = matricToEmail(matric);
+export async function resetPasswordWithEmail(email) {
   return sendPasswordResetEmail(auth, email);
 }
 

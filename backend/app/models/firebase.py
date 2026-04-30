@@ -57,15 +57,6 @@ def verify_id_token(token: str) -> dict:
     return auth.verify_id_token(token)
 
 
-def matric_to_email(matric: str) -> str:
-    """Convert a matriculation number to a synthetic Firebase email.
-
-    Example:
-        CSC/2024/001 → csc-2024-001@faculty.local
-    """
-    return matric.strip().lower().replace("/", "-") + "@faculty.local"
-
-
 # ── Firestore: Users ────────────────────────────────────────────────
 
 def save_user(uid: str, data: dict) -> None:

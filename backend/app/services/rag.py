@@ -10,8 +10,20 @@ Flow:
 
 from app.services import embeddings as emb
 from app.services import llm as llm_service
-from app.prompts.advisor import ADVISOR_SYSTEM_PROMPT
+from app.prompts.advisor import ADVISOR_SYSTEM_PROMPT, ASSESSMENT_SYSTEM_PROMPT, INTENT_CLASSIFIER_PROMPT
 from app.services.sql_roadmap import build_sql_roadmap, build_sql_knowledge_graph
+import re
+
+
+async def analyze_intent(question: str) -> str:
+    """Analyze if the user query is about curriculum or career assessment.
+    Returns 'assessment' or 'chat'.
+    """
+    prompt = INTENT_CLASSIFIER_PROMPT.format(question=question)
+    response = await llm_service.generate(prompt)
+    if "ASSESSMENT" in response.strip().upper():
+        return "assessment"
+    return "chat"
 
 
 def _format_context(docs) -> tuple[str, list[str]]:
@@ -94,6 +106,37 @@ async def ask(question: str, k: int = 5) -> dict:
         answer = f"{answer}\n\n{citation_line}"
 
     return {"response": answer, "sources": sources}
+
+
+async def assess_student(question: str, history: list[dict]) -> dict:
+    """Assess a student's skills and interests to recommend a career path.
+
+    Returns {"response": str, "sources": list[str], "roadmap_id": str | None}
+    """
+    # Build history context
+    history_text = ""
+    for msg in history[-10:]:  # Last 10 messages for context
+        role = "Student" if msg["role"] == "user" else "Advisor"
+        history_text += f"{role}: {msg['content']}\n"
+    
+    if not history_text:
+        history_text = "No previous context."
+
+    # Build prompt
+    prompt = ASSESSMENT_SYSTEM_PROMPT.format(history=history_text, question=question)
+
+    # Generate answer
+    answer = await llm_service.generate(prompt)
+
+    # Parse for career recommendation tag
+    roadmap_id = None
+    match = re.search(r"\[CAREER_RECOMMENDATION:\s*([^\]]+)\]", answer, re.IGNORECASE)
+    if match:
+        roadmap_id = match.group(1).strip()
+        # Remove the tag from the final answer shown to the user
+        answer = answer.replace(match.group(0), "").strip()
+
+    return {"response": answer, "sources": [], "roadmap_id": roadmap_id}
 
 
 async def generate_roadmap(

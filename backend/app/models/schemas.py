@@ -10,11 +10,12 @@ from typing import Optional
 
 class ChatRequest(BaseModel):
     message: str
-
+    mode: str = "auto"  # "auto", "chat", or "assessment"
 
 class ChatResponse(BaseModel):
     response: str
     sources: list[str] = []
+    roadmap_id: Optional[str] = None
 
 
 # ── Roadmap ──────────────────────────────────────────────────────────

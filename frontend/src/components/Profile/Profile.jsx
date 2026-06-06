@@ -47,7 +47,7 @@ export default function Profile() {
         <dl className="grid grid-cols-2 gap-4">
           {[
             ["Name", user?.name || "—"],
-            ["Matric Number", user?.matricNumber || currentUser?.email?.replace("@faculty.local", "").replace(/-/g, "/").toUpperCase()],
+            ["Matric Number", user?.matricNumber || (currentUser?.email?.endsWith("@faculty.local") ? currentUser.email.replace("@faculty.local", "").replace(/-/g, "/").toUpperCase() : "—")],
             ["Department", user?.department || "—"],
             ["Level", user?.level ? `Level ${user.level}` : "—"],
           ].map(([label, value]) => (

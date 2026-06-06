@@ -99,14 +99,13 @@ export default function Wizard() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Matric Number
+                  Matric Number (Optional)
                 </label>
                 <input
                   type="text"
                   value={matricNumber}
                   onChange={(e) => setMatricNumber(e.target.value)}
-                  placeholder="CSC/2024/001"
-                  required
+                  placeholder="CSC/2024/001 (Optional)"
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-none focus:ring-2 focus:ring-[#8cc63f] focus:border-[#8cc63f] outline-none"
                 />
               </div>
@@ -144,7 +143,7 @@ export default function Wizard() {
 
             <button
               onClick={() => setStep(2)}
-              disabled={!name || !matricNumber}
+              disabled={!name}
               className="w-full mt-6 py-2.5 bg-[#8cc63f] text-white font-medium rounded-none hover:bg-[#7db437] disabled:opacity-50 transition cursor-pointer"
             >
               Next

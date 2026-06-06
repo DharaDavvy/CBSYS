@@ -40,14 +40,14 @@ class RoadmapResponse(BaseModel):
 
 class UserCreate(BaseModel):
     name: str
-    matricNumber: str                  # e.g. "CSC/2024/001"
+    matricNumber: Optional[str] = None  # e.g. "CSC/2024/001"
     level: int                         # 100–500
     department: str = "Computer Science"
 
 
 class UserResponse(BaseModel):
     name: str
-    matricNumber: str
+    matricNumber: Optional[str] = None
     level: int
     department: str
 

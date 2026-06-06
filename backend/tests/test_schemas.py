@@ -67,6 +67,11 @@ class TestUserSchemas:
         user = UserCreate(name="John", matricNumber="CSC/2024/001", level=300)
         assert user.department == "Computer Science"
 
+    def test_user_create_without_matric_number(self):
+        user = UserCreate(name="John", level=300)
+        assert user.matricNumber is None
+        assert user.department == "Computer Science"
+
     def test_user_create_missing_fields_raises(self):
         with pytest.raises(ValidationError):
             UserCreate(name="John")
@@ -74,6 +79,10 @@ class TestUserSchemas:
     def test_user_response(self):
         resp = UserResponse(name="John", matricNumber="CSC/2024/001", level=300, department="CS")
         assert resp.level == 300
+
+    def test_user_response_without_matric_number(self):
+        resp = UserResponse(name="John", level=300, department="CS")
+        assert resp.matricNumber is None
 
 
 class TestProfileSchemas:

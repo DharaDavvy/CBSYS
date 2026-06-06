@@ -42,7 +42,7 @@ export default function Dashboard() {
               </span>
             </div>
             <span className="text-sm text-gray-600 hidden sm:block">
-              {currentUser?.email?.replace("@faculty.local", "").replace(/-/g, "/").toUpperCase() || "Student"}
+              {currentUser?.email?.endsWith("@faculty.local") ? currentUser.email.replace("@faculty.local", "").replace(/-/g, "/").toUpperCase() : currentUser?.email || "Student"}
             </span>
           </div>
         </header>

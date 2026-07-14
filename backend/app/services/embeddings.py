@@ -16,6 +16,8 @@ from dataclasses import dataclass, field
 import httpx
 import numpy as np
 import faiss
+from tenacity import retry, stop_after_attempt, wait_exponential
+
 
 from app.config import FAISS_DIR, HF_API_TOKEN
 
@@ -41,35 +43,45 @@ _index: faiss.IndexFlatIP | None = None
 _metadata: list[dict] = []
 
 
+from tenacity import retry, stop_after_attempt, wait_exponential
+import httpx
+import numpy as np
+import faiss
+import time
+
+@retry(stop=stop_after_attempt(5), wait=wait_exponential(multiplier=1, min=4, max=20))
 def embed_texts(texts: list[str]) -> np.ndarray:
     """Embed texts via HF Inference API.
-
+    
     Returns an (N, 384) float32 array, L2-normalised for FAISS cosine search.
-    Retries up to 5 times on network errors or model cold-start (HTTP 503).
+    The @retry decorator automatically handles exceptions and exponential backoff.
     """
     headers = {"Authorization": f"Bearer {HF_API_TOKEN}"}
-    last_exc: Exception | None = None
-    for attempt in range(5):
-        try:
-            response = httpx.post(
-                HF_EMBED_URL,
-                headers=headers,
-                json={"inputs": texts},
-                timeout=60.0,
-            )
-            if response.status_code == 503:
-                time.sleep(20)
-                continue
-            response.raise_for_status()
-            vectors = np.array(response.json(), dtype=np.float32)
-            faiss.normalize_L2(vectors)
-            return vectors
-        except (httpx.ConnectError, httpx.ReadTimeout, httpx.RemoteProtocolError) as exc:
-            last_exc = exc
-            wait = 10 * (attempt + 1)
-            print(f"  [embed] network error ({exc}), retrying in {wait}s...")
-            time.sleep(wait)
-    raise RuntimeError(f"embed_texts failed after 5 attempts: {last_exc}") from last_exc
+    
+    # 1. Make the request
+    response = httpx.post(
+        HF_EMBED_URL,
+        headers=headers,
+        json={"inputs": texts},
+        timeout=60.0,
+    )
+    
+    # 2. Handle HF "Model Cold-Start" explicitly 
+    # (HF returns 503 when the model is waking up)
+    if response.status_code == 503:
+        print("  [embed] HF model is loading, waiting 20s before retry...")
+        time.sleep(20)
+        response.raise_for_status() # This throws the error to trigger Tenacity
+        
+    # 3. Catch ALL bad status codes (including the 500 error you got earlier)
+    # This automatically throws an httpx.HTTPStatusError, which Tenacity catches to retry.
+    response.raise_for_status()
+    
+    # 4. If successful, process the vectors
+    vectors = np.array(response.json(), dtype=np.float32)
+    faiss.normalize_L2(vectors)
+    
+    return vectors
 
 
 # ── Persistence ──────────────────────────────────────────────────────

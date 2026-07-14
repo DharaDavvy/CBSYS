@@ -58,7 +58,7 @@ def _build_huggingface():
     Returns a thin adapter that exposes ainvoke().
     """
     return _HuggingFaceAdapter(
-        model="mistralai/Mistral-7B-Instruct-v0.3",
+        model="Qwen/Qwen2.5-7B-Instruct",
         token=HF_API_TOKEN,
         temperature=max(LLM_TEMPERATURE, 0.01),
         max_tokens=1024,
